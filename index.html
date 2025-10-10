@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mise en Place – Weekly Planner</title>
+<style>
+:root{--ink:#1a1a1a; --muted:#566; --accent:#234E70; --accent-2:#9EC5E5; --bg:#ffffff; --pill:#EFF6FB; --pill-border:#D7E6F3; --line:#D9E3EA; --stripe:#FAFCFE}
+html{scroll-behavior: smooth;}
+body{font-family:system-ui, Segoe UI, Roboto, Arial, sans-serif; margin:0; color:var(--ink); background:var(--bg)}
+.wrap{max-width:960px; margin:0 auto; padding:18px}
+header{position:sticky; top:0; z-index:10; background:#fff; border-bottom:2px solid var(--accent); box-shadow:0 2px 8px rgba(35,78,112,0.1)}
+header h1{margin:0 0 8px 0; font-size:2rem; font-weight:700; letter-spacing:-0.02em; color:var(--accent); line-height:1.1}
+.toolbar{display:flex; gap:8px; align-items:center; margin:8px 0 12px; flex-wrap:wrap}
+.btn{display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; text-decoration:none; color:inherit; box-shadow:0 1px 0 rgba(0,0,0,0.04); cursor:pointer;}
+.btn:hover{background:#f8fbff}
+.pill{display:inline-block; font-size:14px; padding:6px 10px; border-radius:999px; background:var(--pill); border:1px solid var(--pill-border); color:var(--accent)}
+h2:focus{outline:none;}
+.box{border:1px solid var(--line); border-radius:12px; padding:14px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.04)}
+table{border-collapse:collapse; width:100%}
+th,td{border:1px solid var(--line); padding:8px 10px; vertical-align:top; text-align:left}
+th{background:#F3F8FC; color:var(--accent)}
+tbody tr:nth-child(even) td{background:var(--stripe)}
+.kicker{font-size:18px; color:var(--accent); letter-spacing:.05em; text-transform:uppercase; font-weight:700; margin-bottom:4px}
+@media print{ .no-print{display:none !important} body{background:#fff} header{position:static; box-shadow:none} }
+@media screen and (max-width: 768px) {
+  .responsive-table thead { display: none; }
+  .responsive-table tr { display: block; margin-bottom: 1em; border: 1px solid var(--line); border-radius: 8px; padding: 5px; }
+  .responsive-table td { display: block; text-align: right; border: none; border-bottom: 1px solid var(--pill-border); padding: 8px 0; }
+  .responsive-table td:last-child { border-bottom: none; }
+  .responsive-table td::before { content: attr(data-label); float: left; font-weight: bold; color: var(--accent); }
+}
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content { display: none; position: absolute; background-color: #f9f9f9; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--line); z-index: 1; }
+.dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; }
+.dropdown-content a:hover { background-color: #f1f1f1 }
+.dropdown:hover .dropdown-content { display: block; }
+</style>
+</head>
+<body>
+<header class="wrap no-print">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div>
+<div class="kicker">Mise en Place</div>
+<h1 id="plan-title"></h1>
+<div class="pill" id="plan-meta"></div>
+</div>
+<nav class="toolbar">
+<a class="btn" href="index.html">🏠 Home</a>
+<a class="btn" href="shopping.html">🛒 Shopping</a>
+<a class="btn" href="prep.html">🔪 Sunday Prep</a>
+<a class="btn" href="recipes.html">📖 Recipes</a>
+<div class="dropdown">
+<button class="btn">🗓️ Select Week</button>
+<div id="plan-selector-dropdown" class="dropdown-content"></div>
+</div>
+</nav>
+</div>
+</header>
+<main class="wrap">
+<section id="page-home">
+<div class="box">
+<table class="responsive-table">
+<thead id="summary-table-head"></thead>
+<tbody id="summary-table-body"></tbody>
+</table>
+</div>
+<div class="toolbar"><button class="btn" onclick="window.print()">🖨️ Print this page</button></div>
+</section>
+</main>
+
+<script>
+const dropdownContainer = document.getElementById('plan-selector-dropdown');
+
+function populateDropdown(plans) { }
+function updateNavLinks(selectedWeek) { }
+
+(function(){
+    populateDropdown = function(plans) {
+        plans.forEach(plan => {
+            const link = document.createElement('a');
+            link.href = `?week=${plan.id}`;
+            link.textContent = plan.name;
+            dropdownContainer.appendChild(link);
+        });
+    };
+    
+    updateNavLinks = function(selectedWeek) {
+        const navLinks = document.querySelectorAll('nav a.btn');
+        navLinks.forEach(link => {
+            const absoluteUrl = new URL(link.getAttribute('href'), window.location.href);
+            absoluteUrl.searchParams.set('week', selectedWeek);
+            link.href = absoluteUrl.toString();
+        });
+    };
+})();
+
+function renderPageContent(planData, weekId) {
+    function renderSummary(data) {
+        document.getElementById('plan-title').textContent = `Week of ${data.title}`;
+        document.getElementById('plan-meta').textContent = data.meta;
+        const tableHead = document.getElementById('summary-table-head');
+        const tableBody = document.getElementById('summary-table-body');
+        tableHead.innerHTML = `<tr><th>Day</th><th>Plan</th><th>Description</th><th>Scheduling Notes</th></tr>`;
+        tableBody.innerHTML = '';
+        
+        data.meals.forEach(meal => {
+            const row = document.createElement('tr');
+            const mealLink = meal.isSpecial ? meal.name : `<a href="recipe-${meal.id}.html?week=${weekId}">${meal.name}</a>`;
+            row.innerHTML = `
+                <td data-label="Day"><strong>${meal.day}</strong><br><small>${meal.date}</small></td>
+                <td data-label="Plan">${mealLink}</td>
+                <td data-label="Description">${meal.description || ''}</td>
+                <td data-label="Scheduling Notes">${meal.schedulingNotes || ''}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+    
+    const startDate = new Date(planData.title);
+    const startDay = startDate.getDay();
+    const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const startDayName = dayOrder[startDay];
+    const mealStartIndex = planData.meals.findIndex(meal => meal.day === startDayName);
+    if (mealStartIndex > 0) {
+        const reorderedMeals = planData.meals.slice(mealStartIndex).concat(planData.meals.slice(0, mealStartIndex));
+        planData.meals = reorderedMeals;
+    }
+    renderSummary(planData);
+}
+
+const manifestScript = document.createElement('script');
+manifestScript.src = './plan-manifest.js';
+
+manifestScript.onload = () => {
+    populateDropdown(allPlans);
+    const urlParams = new URLSearchParams(window.location.search);
+    const weekId = urlParams.get('week');
+    
+    if (weekId) {
+        updateNavLinks(weekId);
+        const planScript = document.createElement('script');
+        planScript.src = `./data/plan-${weekId}.js`;
+        
+        planScript.onload = () => {
+            renderPageContent(planData, weekId);
+        };
+        document.head.appendChild(planScript);
+    } else {
+        document.querySelector('main').innerHTML = '<h1>Please select a week from the dropdown to begin.</h1>';
+    }
+};
+document.head.appendChild(manifestScript);
+</script>
+</body>
+</html>
