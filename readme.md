@@ -55,7 +55,8 @@ Most meal planning apps still require YOU to do all the thinking. This one is di
 
 1. Visit the [live app](https://cosperjeff-arizona.github.io/mealplan/)
 2. Use an AI assistant to generate your weekly meal plan (see example prompts below)
-3. Upload the resulting meal-plan-data.js file to view your personalized plan
+3. Upload the resulting data file to the `data/` folder in your GitHub repository
+4. The app automatically loads your new plan across all pages
 
 ### Example AI Prompts
 
@@ -214,27 +215,45 @@ python -m http.server 8000
 
 ```
 mealplan/
-├── index.html              # Main app page
-├── css/
-│   └── styles.css          # Styling for the app
-├── js/
-│   └── app.js              # JavaScript to load and display meal data
-└── data/
-    └── meal-plan-data.js   # Your current meal plan data
+├── index.html              # Home page / weekly overview
+├── plan-manifest.js        # Coordinates the meal plan data
+├── shopping.html           # Shopping list view
+├── prep.html              # Sunday prep tasks view
+├── recipes.html           # Recipe index view
+├── recipe-sunday.html     # Individual recipe pages (one per day)
+├── recipe-monday.html
+├── recipe-tuesday.html
+├── recipe-wednesday.html
+├── recipe-thursday.html
+├── recipe-friday.html
+├── recipe-saturday.html
+└── data/                  # Weekly meal plan data files
+    └── [weekly-data].js
 ```
 
-The app reads `meal-plan-data.js` and displays it in a user-friendly format. Replace this file with your AI-generated plan to update the app.
+This is a **multi-page app structure** - each section and recipe has its own HTML file. When you update your weekly plan, you upload new data files to the `data/` folder, and the plan-manifest.js file coordinates loading the right data into each page.
+
+### Why This Structure?
+
+This approach emerged naturally through iterative development with AI assistants. Each time a new feature was added ("add a page for Monday's recipe"), a new HTML file was created. While a single-page app (SPA) with dynamic content loading would be more "modern," this multi-page approach:
+- **Works reliably** for the current use case
+- **Is easy to understand** and maintain
+- **Loads quickly** since each page is lightweight
+- **Prints well** (each recipe is a separate page)
+
+If it works, it works! Sometimes the "simple but many files" approach is better than prematurely optimizing to a more complex architecture.
 
 ## 💾 How Data Storage Works
 
-- The app uses **JavaScript data files** (.js) stored in the GitHub repository
-- Each week, you upload a new meal-plan-data.js file with your updated meal plan
+- The app uses **JavaScript data files** (.js) stored in the `data/` folder
+- Each week, you upload a new data file with your updated meal plan
+- The plan-manifest.js file tells each page where to find the current week's data
 - The data is static (doesn't change unless you upload a new file)
 - Your plan is accessible from any device via the web URL
 - No database required - keeps things simple and free!
 
 **What's the difference between JSON and .js files?**
-Both store structured data, but a .js file can be directly loaded by your web page as a JavaScript module. Think of JSON as the "recipe" and the .js file as the "recipe already in the cookbook." Your AI assistant generates the data in the right format, and you just upload it.
+Both store structured data, but a .js file can be directly loaded by your web page as a JavaScript module. Think of JSON as the "recipe" and the .js file as the "recipe already in the cookbook." Your AI assistant generates the data in the right format, and you just upload it to the data/ folder.
 
 ## 🎓 The Learning Journey
 
@@ -275,6 +294,7 @@ Each frustration became a prompt improvement. Each "I wish it knew..." became a 
 - [ ] Mobile app version
 - [ ] Family member task assignment
 - [ ] Meal history and favorites
+- [ ] Refactor to single-page app (SPA) architecture (learning project - not essential)
 
 ## 🤝 Who This Is For
 
